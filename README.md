@@ -10,6 +10,8 @@ structure, reusable functions and a configurable date range.
 |---|---|
 | `EDA.ipynb` | Original exploratory notebook |
 | `EDA_Refactored.ipynb` | Refactored notebook: documentation, data dictionary, charts and summary |
+| `dashboard.py` | Streamlit dashboard built on the two modules below |
+| `.streamlit/config.toml` | Dashboard theme (light) |
 | `data_loader.py` | Loads the CSV files, joins them, derives columns, filters by month range |
 | `business_metrics.py` | Metric calculations only (revenue, orders, products, states, reviews, delivery, status) |
 | `requirements.txt` | Python dependencies |
@@ -23,6 +25,30 @@ source .venv/bin/activate
 pip install -r requirements.txt
 jupyter notebook EDA_Refactored.ipynb
 ```
+
+## Streamlit dashboard
+
+```bash
+source .venv/bin/activate
+pip install -r requirements.txt
+streamlit run dashboard.py
+```
+
+The dashboard opens in your browser. Layout:
+
+- **Header:** title on the left, date range filter on the right (month granularity). The filter applies to every card and chart.
+- **KPI row:** Total Revenue, Monthly Growth (average month-over-month), Average Order Value and Total Orders.
+- **Charts (2x2):** revenue trend (solid = selected range, dashed = previous period), top 10 categories, revenue by state map, and average review score by delivery time.
+- **Bottom row:** average delivery time and average review score.
+
+Notes on how it behaves:
+
+- Trend indicators compare the selected range with the period of equal length right before it, shown to two decimals. Green is a favourable change and red an unfavourable one. For delivery time, a decrease is treated as favourable (green).
+- If the comparison period starts before the first month in the data, trends show "n/a" instead of a misleading figure.
+- Monthly Growth needs at least two months in the range.
+- The data contains only a sliver of December 2021 and January 2024, so ranges ending or starting there have very small first or last months.
+- Revenue, orders and averages use delivered orders only. Delivery time and review score use delivered orders that have a review.
+- Run the dashboard from the project folder so it finds `ecommerce_data/`.
 
 ## Using the refactored analysis
 
