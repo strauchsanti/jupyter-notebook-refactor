@@ -1,48 +1,67 @@
-# Claude Code: A Highly Agentic Coding Assistant 
+# E-commerce Sales Analysis
 
-## Other DeepLearning Resources
-> :mortar_board: **Keep learning** → [Explore all DeepLearning.AI courses](https://www.deeplearning.ai/courses/) — taught by the people building the future of AI. Find your next one.
->
-> :computer: **Explore more course artifacts** → [Browse the DeepLearning.AI course artifacts repo](https://github.com/https-deeplearning-ai/deeplearning-ai) to find notebooks, projects, and notes from other courses across the DeepLearning.AI library.
+Exploratory analysis of an e-commerce dataset (orders, items, products, customers and reviews).
+`EDA.ipynb` is the original notebook. `EDA_Refactored.ipynb` is the same analysis with a clearer
+structure, reusable functions and a configurable date range.
 
-## About this repository
+## Project layout
 
-This repository contains the resources and links of the short course ["Claude Code: A highly Agentic Coding Assistant"](https://www.deeplearning.ai/courses/claude-code-a-highly-agentic-coding-assistant).
+| File | Purpose |
+|---|---|
+| `EDA.ipynb` | Original exploratory notebook |
+| `EDA_Refactored.ipynb` | Refactored notebook: documentation, data dictionary, charts and summary |
+| `data_loader.py` | Loads the CSV files, joins them, derives columns, filters by month range |
+| `business_metrics.py` | Metric calculations only (revenue, orders, products, states, reviews, delivery, status) |
+| `requirements.txt` | Python dependencies |
+| `ecommerce_data/` | Source CSV files |
 
-## Course Overview
+## Setup
 
-The course teaches Claude Code best practices through 3 practical examples:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+jupyter notebook EDA_Refactored.ipynb
+```
 
-- **RAG chatbot codebase** (Lessons 2-6)
-- **Ecommerce data analysis** (Lesson 7) 
-- **Figma design mockup implementation** (Lesson 8)
+## Using the refactored analysis
 
-## Course Structure
+Open `EDA_Refactored.ipynb` and edit the configuration cell in section 3, then run all cells.
 
-- **Lesson 1**: What is Claude Code?
-- **Lesson 2**: Setup & Codebase Understanding
-- **Lesson 3**: Adding Features
-- **Lesson 4**: Testing, Error Debugging and Code Refactoring
-- **Lesson 5**: Adding Multiple Features Simultaneously
-- **Lesson 6**: Exploring Github Integration & Hooks
-- **Lesson 7**: Refactoring a Jupyter Notebook & Creating a Dashboard
-- **Lesson 8**: Creating Web App based on a Figma Mockup
+```python
+START_MONTH = "2023-01"          # first month of the analysis period
+END_MONTH = "2023-12"            # last month (inclusive)
+COMPARISON_START_MONTH = None    # optional; None = equal-length period right before START_MONTH
+COMPARISON_END_MONTH = None
+DELIVERY_BINS = (3, 7)           # upper edge in days of every delivery group except the last
+DELIVERY_LABELS = ("1-3 days", "4-7 days", "8+ days")
+```
 
-## What's Included
+Examples:
 
-- **Reading Notes** (`reading_notes/`) - Detailed notes for each lesson including prompts used and feature summaries
-- **Lesson 7 Files** (`lesson7_files/`) - Complete ecommerce data analysis example with:
-    - Jupyter notebooks (original and refactored)
-    - Python modules for data loading, business metrics, and dashboard
-    - Sample ecommerce datasets
-- **Additional Resources** (`additional_files/`) - Supplementary materials including the visualization generated in lesson 1 and the figma binary file of the mockup used in lesson 8.
-- **Course Repository Links** (`links_to_course_repos.md`) - Links to course repositories used in lessons 3-6 and lesson 8
+- Full year 2023 against 2022 (default): `"2023-01"` to `"2023-12"`.
+- Second quarter 2023 against the first quarter: `"2023-04"` to `"2023-06"`.
+- A custom comparison, such as Q2 2023 against Q2 2022: also set `COMPARISON_START_MONTH = "2022-04"` and `COMPARISON_END_MONTH = "2022-06"`.
 
+Months are assigned by order purchase date. Revenue is the sum of item prices of delivered orders,
+excluding freight. Delivery time and review metrics only use delivered orders that have a review score.
+Charts and the summary text pick up the selected range automatically.
 
-## Resources
+## Using the modules outside the notebook
 
-- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code/overview)
-- [Claude Code Common Workflows](https://docs.anthropic.com/en/docs/claude-code/common-workflows)
-- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [Claude Code Use Cases](https://www.anthropic.com/news/how-anthropic-teams-use-claude-code)
-- [Claude Code in Action - Anthropic Academy Course](https://anthropic.skilljar.com/claude-code-in-action)
+```python
+import data_loader as dl
+import business_metrics as bm
+
+data = dl.prepare_analysis_data("2023-04", "2023-06", data_dir="ecommerce_data")
+delivered = data["sales_delivered"]
+
+bm.total_revenue(delivered)
+bm.revenue_by_category(delivered)
+bm.kpi_summary(delivered, data["sales_delivered_previous"])
+```
+
+To apply the code to a new dataset with the same table layout, point `data_dir` at the new folder.
+If column names differ, adjust `TABLE_FILES` and `build_sales_data` in `data_loader.py`; the metric
+functions only rely on the columns of the item-level table (`order_id`, `price`, `year_month`,
+`product_category_name`, `customer_state`, `delivery_days`, `review_score`, `order_status`).
